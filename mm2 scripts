@@ -1,0 +1,268 @@
+-- Delta Android - MM2: VFresh Hub - 120 scattered texts 89% transparent + Discord link
+
+local Players = game:GetService("Players")
+local VirtualUser = game:GetService("VirtualUser")
+local RunService = game:GetService("RunService")
+local LP = Players.LocalPlayer
+
+local REAL_MM2_ID = 142823291
+if game.PlaceId ~= REAL_MM2_ID then
+    LP:Kick("Murder Mystery 2 only")
+    return
+end
+
+local discordLink = "https://discord.gg/RJ97grKgb"
+pcall(function() setclipboard(discordLink) end)
+
+pcall(function() LP.PlayerGui:FindFirstChild("VFreshHub"):Destroy() end)
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "VFreshHub"
+gui.Parent = LP:WaitForChild("PlayerGui")
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+
+-- Discord link at bottom
+local linkText = Instance.new("TextLabel")
+linkText.Size = UDim2.new(0, 250, 0, 30)
+linkText.Position = UDim2.new(0.5, -125, 0.92, 0)
+linkText.BackgroundTransparency = 1
+linkText.TextColor3 = Color3.new(0.4, 0.6, 0.9)
+linkText.TextScaled = true
+linkText.Font = Enum.Font.Gotham
+linkText.Text = discordLink
+linkText.Parent = gui
+
+-- Generate 120 scattered positions
+local positions = {}
+for i = 1, 120 do
+    local x = math.random(2, 98) / 100
+    local y = math.random(2, 90) / 100
+    table.insert(positions, {x, y})
+end
+
+for _, pos in pairs(positions) do
+    local text = Instance.new("TextLabel")
+    text.Size = UDim2.new(0, 100, 0, 25)
+    text.Position = UDim2.new(pos[1], -50, pos[2], -12)
+    text.BackgroundTransparency = 1
+    text.TextColor3 = Color3.new(1, 0, 0)
+    text.TextTransparency = 0.89
+    text.TextScaled = true
+    text.Font = Enum.Font.GothamBold
+    text.Text = "VFRESH HUB"
+    text.Parent = gui
+end
+
+local voidPlatform = Instance.new("Part")
+voidPlatform.Size = Vector3.new(200, 0.2, 200)
+voidPlatform.Anchored = true
+voidPlatform.CanCollide = true
+voidPlatform.Transparency = 0.3
+voidPlatform.BrickColor = BrickColor.new("Bright blue")
+voidPlatform.Name = "VoidPlatform"
+voidPlatform.Position = Vector3.new(0, -100, 0)
+voidPlatform.Parent = workspace
+
+-- Permanent NoClip
+RunService.RenderStepped:Connect(function()
+    local c = LP.Character
+    if c then
+        for _, p in pairs(c:GetDescendants()) do
+            if p:IsA("BasePart") then
+                p.CanCollide = false
+            end
+        end
+    end
+    for _, p in pairs(workspace:GetDescendants()) do
+        if p:IsA("BasePart") and p ~= voidPlatform then
+            p.CanCollide = false
+        end
+    end
+end)
+
+local function IsRoundActive()
+    for _, o in pairs(workspace:GetDescendants()) do
+        if o:IsA("BasePart") then
+            local name = string.lower(o.Name or "")
+            if name:find("coin") or name:find("gem") then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local function IsAlive()
+    local c = LP.Character
+    if not c then return false end
+    local hum = c:FindFirstChild("Humanoid")
+    if not hum or hum.Health <= 0 then return false end
+    return true
+end
+
+local function GetHRP()
+    local c = LP.Character
+    return c and c:FindFirstChild("HumanoidRootPart")
+end
+
+local function GetAllCoins()
+    local coins = {}
+    for _, o in pairs(workspace:GetDescendants()) do
+        if o:IsA("BasePart") then
+            local name = string.lower(o.Name or "")
+            if name:find("coin") or name:find("gem") then
+                table.insert(coins, o)
+            end
+        end
+    end
+    return coins
+end
+
+local function TPToNearestCoin()
+    local hrp = GetHRP()
+    if not hrp then return false end
+    
+    local coins = GetAllCoins()
+    if #coins == 0 then return false end
+    
+    local nearest = nil
+    local nearestDist = math.huge
+    
+    for _, coin in pairs(coins) do
+        local dist = (coin.Position - hrp.Position).Magnitude
+        if dist < nearestDist then
+            nearestDist = dist
+            nearest = coin
+        end
+    end
+    
+    if nearest then
+        hrp.CFrame = CFrame.new(nearest.Position.X, nearest.Position.Y + 3, nearest.Position.Z)
+        return true
+    end
+    return false
+end
+
+local function StayOnVoid()
+    local h = GetHRP()
+    if h then
+        h.CFrame = CFrame.new(0, -97, 0)
+    end
+end
+
+local function AntiAFK()
+    local vu = VirtualUser
+    if vu then
+        vu:Button2Down(Vector2.new(0, 0))
+        task.wait(0.1)
+        vu:Button2Up(Vector2.new(0, 0))
+    end
+end
+
+local function GetCoinCount()
+    local ls = LP:FindFirstChild("leaderstats")
+    if ls then
+        for _, v in pairs(ls:GetChildren()) do
+            if v:IsA("IntValue") and string.lower(v.Name):find("coin") then
+                return v.Value
+            end
+        end
+    end
+    return 0
+end
+
+local function ResetCharacter()
+    if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+        LP.Character.Humanoid.Health = 0
+    end
+end
+
+local function FlingMurderer()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LP and player.Character then
+            local targetHrp = player.Character:FindFirstChild("HumanoidRootPart")
+            if targetHrp then
+                local isMurderer = false
+                for _, tool in pairs(player.Character:GetChildren()) do
+                    if tool:IsA("Tool") and string.lower(tool.Name):find("knife") then
+                        isMurderer = true
+                        break
+                    end
+                end
+                if isMurderer then
+                    targetHrp.Velocity = Vector3.new(10000, 5000, 10000)
+                    task.wait(0.1)
+                    targetHrp.Velocity = Vector3.new(-10000, 5000, -10000)
+                    task.wait(0.1)
+                    targetHrp.CFrame = CFrame.new(0, 10000, 0)
+                end
+            end
+        end
+    end
+end
+
+local farming = false
+local flingDone = false
+local coinsFull = false
+
+spawn(function()
+    while true do
+        local roundActive = IsRoundActive()
+        local alive = IsAlive()
+        local coins = GetCoinCount()
+        
+        if coins >= 40 then
+            if not coinsFull then
+                coinsFull = true
+                farming = false
+                flingDone = false
+            end
+            
+            if not flingDone then
+                FlingMurderer()
+                flingDone = true
+            end
+            
+            while IsRoundActive() do
+                task.wait(1)
+            end
+            
+            ResetCharacter()
+            task.wait(2)
+            
+            while not IsRoundActive() do
+                task.wait(1)
+            end
+            
+            coinsFull = false
+            flingDone = false
+            task.wait(2)
+        end
+        
+        if not coinsFull and roundActive and alive then
+            farming = true
+            if TPToNearestCoin() then
+                task.wait(0.3)
+                StayOnVoid()
+                task.wait(3)
+            else
+                task.wait(0.5)
+            end
+        else
+            if farming then
+                farming = false
+            end
+            task.wait(2)
+        end
+    end
+end)
+
+spawn(function()
+    while true do
+        task.wait(30)
+        AntiAFK()
+    end
+end)
+
+print("VFresh Hub - 120 scattered texts | Stops when coins full | Waits for next round")
